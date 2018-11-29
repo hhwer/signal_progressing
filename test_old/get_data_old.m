@@ -1,6 +1,6 @@
 %%%  从old的csv文件中，并存储成1*n的cell---data
 %%%
-data_path = '.\medical_data_jianhong';
+data_path = '.\medical_data';
 data = {};
 num = 0;
 total_num_suspect = 0;
@@ -51,8 +51,9 @@ for i=1:length(dirs)
                 
                 if file_with_customid == length(pulse_file)
                     situation = 1;    %%id能匹配正确
-                elseif sum(a(:,5)) == 0 && length(pulse_file) == local_num
-                    situation = 2;    %%全为未怀孕 且汇总人数等于数据个数
+                    %%统计年龄时  不管situation2
+% % %                 elseif sum(a(:,5)) == 0 && length(pulse_file) == local_num
+% % %                     situation = 2;    %%全为未怀孕 且汇总人数等于数据个数
                 else
                     situation = 3;    %%只有部分id能匹配
                 end
@@ -77,6 +78,7 @@ for i=1:length(dirs)
                         end
                         custom = struct();
                         custom.customid = a(k,1);
+                        custom.age = a(k,3);
                         custom.pweeks = a(k,5);
                         custom.spressure = b(:,2);
                         custom.pulse = b(:,3);

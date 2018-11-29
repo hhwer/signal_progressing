@@ -1,11 +1,10 @@
 %%%  从new的文件中获取数据    对于以前的 和 衡阳的  要修改读入pulse的位置！！
 %%%
-% data_path = '.\medical_data_new';
-data_path = '.\medical_data_hengyang';
-data_path = '.\choose_data';
-data_path = [data_path,'\all_data\medical_data_hengyang'];
+data_path = '.\medical_data_new';
+% data_path = '.\medical_data_hengyang';
 opts.plot=0;
 data = {};
+data1={};
 data_num = 0;
 
 worker_num = 0;
@@ -38,7 +37,8 @@ for i=1:length(dirs)
                 
                 pulse_path = [file_path,'\csv\HK-2010'];
                 pulse_file = dir([pulse_path,'\*.csv']);
-
+                pulse_path_ppg = [file_path,'\csv\PPG'];
+                pulse_file_ppg = dir([pulse_path_ppg,'\*.csv']);
                 
                 good_num = 0;
                 bad_num = 0;
@@ -54,27 +54,34 @@ for i=1:length(dirs)
                     for kk = 1:pulse_num
                         pulse_i = pulse_file(kk);
                         name_i = pulse_i.name;
-                        if contains(string(name_i),id) 
+                        pulse_i_ppg = pulse_file_ppg(kk);
+                        name_i_ppg = pulse_i_ppg.name;
+                        if contains(string(name_i),id) && contains(string(name_i_ppg),id)
                             b = xlsread([pulse_path,'\',pulse_i.name]);
+                            b1 = xlsread([pulse_path_ppg,'\',pulse_i_ppg.name]);
                             custom = struct();
                             custom.customid = id;
                             custom.pweeks = pweeks;
+                            custom1.customid = id;
+                            custom1.pweeks = pweeks;
                             if isempty(b)
                                 wrong_length = wrong_length + 1;
                                 continue
                             end
-%              
-% % %  衡阳数据存在第2列 只有pulse                           
-                            custom.pulse = b(:,2);    %%衡阳的数据格式
-   
-% 
-% % % 以前的新数据 第2列为spressure 第3列为pulse
-% %                             custom.spressure = b(:,2);
-% %                             custom.pulse = b(:,3);
-% %                             custom.data=custom.spressure - custom.pulse;
+                            if isempty(b1)
+                                wrong_length = wrong_length + 1;
+                                continue
+                            end
+                            custom1.pulse = b1(:,2);  
+                            custom.pulse = b(:,3);  
                             
                             pulse_length = length(custom.pulse);
+                            pulse_length_ppg = length(custom1.pulse);
                             if pulse_length > 5000 || pulse_length < 500
+                                wrong_length = wrong_length + 1;
+                                continue
+                            end
+                             if pulse_length_ppg > 5000 || pulse_length_ppg < 500
                                 wrong_length = wrong_length + 1;
                                 continue
                             end
@@ -82,7 +89,10 @@ for i=1:length(dirs)
                             data_num = data_num+1
                             data{data_num} = custom;
                             quality = f2_neighbor(1,opts);
-                            if quality == 1
+                            opts.data={custom1};
+                            data1{data_num} = custom;
+                            quality1 = f2_neighbor(1,opts); 
+                            if quality == 1 & quality1==1
                                 good_num = good_num+1;
                             else
                                 bad_num = bad_num+1;
@@ -104,11 +114,3 @@ for i=1:length(dirs)
         end
     end
 end
-
-% datacolumns = {'name','total_pulse_num','good_num','good_rate',...
-%                'bad_num','bad_rate','wrong_length_num'};
-% 
-% sumary_data = table(work_name',work_total_pulse_num',work_good_num',work_good_rate',...
-%                work_bad_num',work_bad_rate',work_wrong_length_num','VariableNames', datacolumns);
-% % % 
-% % % % writetable(sumary_data,'sumary.xls')

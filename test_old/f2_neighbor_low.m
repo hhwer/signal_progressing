@@ -1,4 +1,4 @@
-function [ quality,good_index, index_best5 ] = f2_neighbor_low( n1 ,opts)
+function [ quality,good_index, index_best5,index] = f2_neighbor_low( n1 ,opts)
 %判断数据的质量
 %   以相邻相似数据最多为优
 %input
@@ -21,7 +21,7 @@ r2 = 0.4;  %聚集点的半径        r2 r3  old数据里为0.4  new 里0.55
 r3 = 0.4;     %以最优为中心的聚集半径
 p1 = 0.1;   %等级4的离群点的领域含点比例
 p2 = 0.4;  %等级3的离群点的领域含点比例
-p3 = 0.2;  %等级1的聚集点的领域含点比例   old  0.3   new 0.1
+p3 = 0.1;  %等级1的聚集点的领域含点比例   old  0.3   new 0.1
 Max_continue_num = 3;
 Total_num = 5;
 
@@ -55,6 +55,10 @@ else
     if ~isfield(opts,'plot')
         opts.plot=1;
     end
+    if ~isfield(opts,'top_noise')
+        opts.top_noise=1;
+    end
+    
 end
 
 
@@ -84,7 +88,7 @@ else
 end
 
 for n = n1:n1
-    [samples,index] = get_period_low(a1,opts);
+    [samples,index,isright] = get_period_low(a1,opts);
     if opts.plot
         hold on
     end
@@ -128,18 +132,27 @@ for n = n1:n1
             wave_period = [wave_period, i];
         else
             b = -local_sample(max_idx:length(local_sample));
-            para2 = max(b)-(max(b)-min(b))/30;
-            para3 = max(b)-(max(b)-min(b))/10;
+%             para2 = max(b)-(max(b)-min(b))/30;
+%             para3 = max(b)-(max(b)-min(b))/30;
+            para2 = b(length(b))-(max(b)-min(b))/30;
+            para3 = b(length(b))-(max(b)-min(b))/30;
+            para4 = max(local_sample)-(max(local_sample)-min(local_sample))/50;
             [y,idx] = findpeaks(b,'minpeakdistance',1,'MinPeakHeight',para2);
+            [y1,idx1] = findpeaks(local_sample,'minpeakdistance',4,'MinPeakHeight',para4);
             low_point_idx = find(b>para3);
             if  length(y) >=  (index(i+1)-index(i))/para_noise ||  ...
                 length(low_point_idx) >= (index(i+1)-index(i))/2 || ...
-                low_point_idx(length(low_point_idx))-low_point_idx(1) >= (index(i+1)-index(i))/2
+                low_point_idx(length(low_point_idx))-low_point_idx(1) >= (index(i+1)-index(i))/2 
                 
 %             if  length(y) >=  (index(i+1)-index(i))/para_noise
                 noise_period = [noise_period, i];
             else
-                right_period = [right_period, i];
+                if opts.top_noise && length(y1) >= 3
+                    noise_period = [noise_period, i];
+                else
+            
+                    right_period = [right_period, i];
+                end
             end
         end
     end     %%wave and noise
@@ -303,7 +316,7 @@ for n = n1:n1
         for j = right_period
             b1 = samples{j};
             dist_ij = dist(i,j);
-            if dist_ij <= r3
+            if dist_ij <= r3 && dist_one(i,j)==1
                 point1 = [point1,j];
                 num_distToStandard = num_distToStandard+1;
                 distToStandard(num_distToStandard) = dist_ij;
@@ -361,6 +374,9 @@ end
 quality = 3;
 if max_point >= Max_continue_num
     quality = 1;
+    if isright < 0.5
+        quality =4;
+    end
 end
 % try
 %     i = max_point_index;
@@ -380,7 +396,7 @@ if opts.plot
     for i = point1
         start_index = end_index+1;
         end_index = start_index+index(i+1)-index(i);
-        plot(start_index:end_index,samples{i},'y')
+        plot(start_index:end_index,samples{i},'y','LineWidth',1)
         hold on
     end
 end

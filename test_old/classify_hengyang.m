@@ -1,7 +1,14 @@
-%%%  从衡阳的文件中获取数据 
-%%%
-data_path = '.\medical_data_new';
-opts.plot=0;
+%%%  从衡阳的文件中获取数据 分类 并生成分析文件
+%%%%%%   42行选择数据类型  HKor PPG or ECGG
+data_path = '.\choose_data';
+warning off
+
+dst_path1 = [data_path,'\good'];
+dst_path3 = [data_path,'\bad'];
+dst_path4 = [data_path,'\反向'];
+data_path = [data_path,'\all_data\medical_data_hengyang'];
+opts.plot=1;
+opts.top_noise = 1;
 data = {};
 data_num = 0;
 
@@ -69,12 +76,23 @@ for i=1:length(dirs)
                             opts.data={custom};
                             data_num = data_num+1;
                             data{data_num} = custom;
-                            quality = f2_neighbor(1,opts);
+                            quality = f2_neighbor_low(1,opts);
                             if quality == 1
                                 good_num = good_num+1;
+                                path = dst_path1;
+                            elseif quality == 3
+                                bad_num = bad_num+1;
+                                path = dst_path3;
                             else
+                                path = dst_path4;
                                 bad_num = bad_num+1;
                             end
+                            where_i = find(pulse_i.name=='.');
+                            save_name = pulse_i.name(1:where_i-1);
+                            saveas(gcf,save_name,'jpg');
+                            copyfile([save_name,'.jpg'],pulse_path)
+                            movefile([save_name,'.jpg'],path);
+%                             movefile([save_name,'.jpg'],pulse_path)
                         end
                     end
                 end
@@ -94,13 +112,13 @@ for i=1:length(dirs)
 end
 
 
-% datacolumns = {'name','total_pulse_num','good_num','good_rate',...
-%                'bad_num','bad_rate','wrong_length_num'};
-% 
-% sumary_data = table(work_name',work_total_pulse_num',work_good_num',work_good_rate',...
-%                work_bad_num',work_bad_rate',work_wrong_length_num','VariableNames', datacolumns);
-% % % 
-% % % % writetable(sumary_data,'sumary.xls')
+datacolumns = {'name','total_pulse_num','good_num','good_rate',...
+               'bad_num','bad_rate','wrong_length_num'};
+
+sumary_data = table(work_name',work_total_pulse_num',work_good_num',work_good_rate',...
+               work_bad_num',work_bad_rate',work_wrong_length_num','VariableNames', datacolumns);
+% % 
+writetable(sumary_data,'sumary_20181114.xls')
 
     
         

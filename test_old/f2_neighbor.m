@@ -17,11 +17,11 @@ function [ quality,good_index, index_best5 ] = f2_neighbor( n1 ,opts)
 %                                   
 %
 r1 = 1;  %离群点的半径
-r2 = 0.25;  %聚集点的半径        r2 r3  old数据里为0.4  new 里0.55
-r3 = 0.25;     %以最优为中心的聚集半径
+r2 = 0.4;  %聚集点的半径        r2 r3  old数据里为0.4  new 里0.55
+r3 = 0.4;     %以最优为中心的聚集半径
 p1 = 0.1;   %等级4的离群点的领域含点比例
 p2 = 0.4;  %等级3的离群点的领域含点比例
-p3 = 0.3;  %等级1的聚集点的领域含点比例   old  0.3   new 0.1
+p3 = 0.2;  %等级1的聚集点的领域含点比例   old  0.3   new 0.1
 Max_continue_num = 3;
 Total_num = 5;
 
@@ -175,7 +175,7 @@ for n = n1:n1
     
     for i = right_period
         b = samples{i};
-        b_x = index(i):index(i+1)-1;
+        b_x = index(i):index(i+1);
         if opts.plot
             
             line2 = plot(b_x,b,'b');
@@ -189,7 +189,7 @@ for n = n1:n1
     end
     for i = outlier1
         b = samples{i};
-        b_x = index(i):index(i+1)-1;
+        b_x = index(i):index(i+1);
         if opts.plot
             line4 = plot(b_x,b,'black','LineWidth',2);
         end
@@ -202,7 +202,7 @@ for n = n1:n1
     end
     for i = outlier2
         b = samples{i};
-        b_x = index(i):index(i+1)-1;
+        b_x = index(i):index(i+1);
         if opts.plot
             line3 = plot(b_x,b,'red','LineWidth',1.5);
         end
@@ -215,7 +215,7 @@ for n = n1:n1
     end
     for i = wrong_period
         b = samples{i};
-        b_x = index(i):index(i+1)-1;
+        b_x = index(i):index(i+1);
         if opts.plot
             line5 = plot(b_x,b,':','LineWidth',0.0001);
         end
@@ -229,7 +229,7 @@ for n = n1:n1
     
     for i = wave_period
         b = samples{i};
-        b_x = index(i):index(i+1)-1;
+        b_x = index(i):index(i+1);
         if opts.plot
             line_wave = plot(b_x,b,'m','LineWidth',0.1);
         end
@@ -243,7 +243,7 @@ for n = n1:n1
     
     for i = noise_period
         b = samples{i};
-        b_x = index(i):index(i+1)-1;
+        b_x = index(i):index(i+1);
         if opts.plot
             line_noise = plot(b_x,b,':m','LineWidth',2);
         end
@@ -262,11 +262,12 @@ for n = n1:n1
         b = samples{i};
         b_length = length(b);
         scale = max(b)-min(b);
-        b_x = index(i):index(i+1)-1;
+        b_x = index(i):index(i+1);
         for j = right_period
             b1 = samples{j};
             b1_length = length(b1);
-            if dist_one(i,j) && abs((b1(1)+b1(b1_length))/2 - (b(1)+b(b_length))/2)  > 1/10*scale
+            if dist_one(i,j) &&  ... 
+                    max(abs((b1(1)+b1(b1_length))/2 - (b(1)+b(b_length))/2),abs(min(b1)-min(b)) ) > 1/10*scale
                 dist_one(i,j) = 0;
             end
         end
@@ -288,7 +289,7 @@ for n = n1:n1
         b = samples{i};
         %         b_length = length(b);
         %         scale = max(b)-min(b);
-        b_x = index(i):index(i+1)-1;
+        b_x = index(i):index(i+1);
         if opts.plot
             line0 = plot(b_x,b,'g','LineWidth' ,4);
         end
@@ -326,7 +327,7 @@ for n = n1:n1
     for i = point1
         good_period_num = good_period_num +1;
         b = samples{i};
-        b_x = index(i):index(i+1)-1;
+        b_x = index(i):index(i+1);
         good_index(good_period_num,:) = [index(i),index(i+1)];
         if opts.plot
             line1 = plot(b_x,b,'yellow','LineWidth',1);
@@ -373,7 +374,7 @@ if opts.plot
     end_index = 0;
     for i = point1
         start_index = end_index+1;
-        end_index = start_index+index(i+1)-index(i)-1;
+        end_index = start_index+index(i+1)-index(i);
         plot(start_index:end_index,samples{i},'y')
         hold on
     end

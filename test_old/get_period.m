@@ -8,7 +8,7 @@ end
 n = length(idx)-1;
 samples = cell(n,1);
 for i = 1:n
-    samples{i,1} = x(idx(i):idx(i+1)-1);
+    samples{i,1} = x(idx(i):idx(i+1));
 end
 try
     if opts.plot == 1
